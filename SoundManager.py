@@ -16,8 +16,8 @@ class SoundManager:
         }
 
         # Asignar volúmenes personalizados (0.0 a 1.0)
-        self.sounds["player_shoot"].set_volume(0.05)
-        self.sounds["enemy_shoot"].set_volume(0.05)
+        self.sounds["player_shoot"].set_volume(0.02)
+        self.sounds["enemy_shoot"].set_volume(0.08)
         self.sounds["enemy_hit"].set_volume(0.05)
         self.sounds["player_hit"].set_volume(0.05)
 
