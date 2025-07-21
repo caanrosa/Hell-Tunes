@@ -1,33 +1,30 @@
-# Hell Tunesimport pygame
-
-import sys
 import pygame
+import time
+from player import Player
+from enemy import Enemy
+from bullet import Bullet
 
-# Inicializar Pygame
+# Inicialización
 pygame.init()
-
-# Dimensiones de la pantalla
-WIDTH, HEIGHT = 800, 600
+WIDTH, HEIGHT = 1200, 900
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Bullet Hell Rítmico")
-
-# Colores
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-
-# Jugador
-player_size = 40
-player_x = WIDTH // 2
-player_y = HEIGHT - 60
-player_speed = 5
-
+pygame.display.set_caption("Hell Tunes")
 clock = pygame.time.Clock()
 
-# Bucle principal del juego
+# Jugador y jefe
+player = Player(x=WIDTH // 3, y=HEIGHT - 80, size=30, speed=5, screen_width=WIDTH, screen_height=HEIGHT)
+boss = Enemy(x=WIDTH // 2 - 75, y=50, width=150, height=60, max_health=300)
+
+# Disparos del jugador
+player_bullets = []
+shoot_cooldown = 0.25  # segundos
+last_shot_time = 0
+
+# Bucle principal
 running = True
 while running:
-    clock.tick(60)  # 60 FPS
-    screen.fill(BLACK)
+    clock.tick(60)
+    current_time = time.time()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -35,19 +32,34 @@ while running:
 
     # Movimiento del jugador
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT] and player_x > 0:
-        player_x -= player_speed
-    if keys[pygame.K_RIGHT] and player_x < WIDTH - player_size:
-        player_x += player_speed
-    if keys[pygame.K_UP] and player_y > 0:
-        player_y -= player_speed
-    if keys[pygame.K_DOWN] and player_y < HEIGHT - player_size:
-        player_y += player_speed
+    player.move(keys)
 
-    # Dibujar jugador
-    pygame.draw.rect(screen, WHITE, (player_x, player_y, player_size, player_size))
+    # Disparar con tecla Z
+    if keys[pygame.K_z] and current_time - last_shot_time > shoot_cooldown:
+        bullet = player.shoot()
+        player_bullets.append(bullet)
+        last_shot_time = current_time
+
+    # Mover jefe
+    boss.move(WIDTH)
+
+    # Actualizar balas del jugador
+    for bullet in player_bullets[:]:
+        bullet.update()
+        if bullet.is_off_screen(HEIGHT):
+            player_bullets.remove(bullet)
+        elif bullet.rect.colliderect(boss.rect):
+            boss.take_damage(10)
+            player_bullets.remove(bullet)
+
+    # Dibujar todo
+    screen.fill((0, 0, 0))
+    boss.draw(screen)
+    player.draw(screen)
+
+    for bullet in player_bullets:
+        bullet.draw(screen)
 
     pygame.display.flip()
 
 pygame.quit()
-sys.exit()
