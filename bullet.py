@@ -1,21 +1,16 @@
 import pygame
 
 class Bullet:
-    def __init__(self, x, y, radius, speed, color, direction):
-        self.x = x
-        self.y = y
-        self.radius = radius
-        self.speed = speed
-        self.color = color
-        self.direction = direction  # -1 = arriba, +1 = abajo
-        self.rect = pygame.Rect(x - radius, y - radius, radius * 2, radius * 2)
+    def __init__(self, x, y, dx, dy, from_player=True):
+        self.rect = pygame.Rect(x, y, 6, 12)
+        self.dx = dx
+        self.dy = dy
+        self.from_player = from_player
+        self.color = (0, 255, 255) if from_player else (255, 0, 255)
 
     def update(self):
-        self.y += self.speed * self.direction
-        self.rect.y = self.y - self.radius
+        self.rect.x += self.dx
+        self.rect.y += self.dy
 
     def draw(self, screen):
-        pygame.draw.circle(screen, self.color, (self.x, self.y), self.radius)
-
-    def is_off_screen(self, screen_height):
-        return self.y < 0 or self.y > screen_height
+        pygame.draw.rect(screen, self.color, self.rect)

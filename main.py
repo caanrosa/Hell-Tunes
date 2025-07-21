@@ -1,65 +1,63 @@
 import pygame
-import time
-from player import Player
-from enemy import Enemy
-from bullet import Bullet
+from Player import Player
+from Enemy import Enemy
+from Bullet import Bullet
 
-# Inicialización
+# Inicialización de Pygame
 pygame.init()
+
+# Dimensiones de la pantalla
 WIDTH, HEIGHT = 1200, 900
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Hell Tunes")
+pygame.display.set_caption("Hell Tunes - Boss Battle")
+
+# Reloj
 clock = pygame.time.Clock()
+FPS = 60
 
-# Jugador y jefe
-player = Player(x=WIDTH // 3, y=HEIGHT - 80, size=30, speed=5, screen_width=WIDTH, screen_height=HEIGHT)
-boss = Enemy(x=WIDTH // 2 - 75, y=50, width=150, height=60, max_health=300)
+# Colores
+BLACK = (0, 0, 0)
 
-# Disparos del jugador
-player_bullets = []
-shoot_cooldown = 0.25  # segundos
-last_shot_time = 0
+# Instanciar jugador y enemigo
+player = Player(x=WIDTH // 3, y=HEIGHT - 80, size=30, speed=5,
+                screen_width=WIDTH, screen_height=HEIGHT)
+enemy = Enemy(x=WIDTH // 2 - 50, y=50, width=100, height=60, max_health=100)
 
-# Bucle principal
+# Loop principal
 running = True
 while running:
-    clock.tick(60)
-    current_time = time.time()
+    clock.tick(FPS)
+    screen.fill(BLACK)
 
+    # Eventos
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    # Movimiento del jugador
+    # Entrada de teclado
     keys = pygame.key.get_pressed()
-    player.move(keys)
+    player.update(keys)
+    enemy.update(WIDTH)
 
-    # Disparar con tecla Z
-    if keys[pygame.K_z] and current_time - last_shot_time > shoot_cooldown:
-        bullet = player.shoot()
-        player_bullets.append(bullet)
-        last_shot_time = current_time
+    # --- Detección de colisiones ---
+    # Balas del jugador que impactan al jefe
+    for bullet in player.bullets[:]:
+        if enemy.rect.colliderect(bullet.rect) and bullet.from_player:
+            enemy.take_damage(1)
+            player.bullets.remove(bullet)
 
-    # Mover jefe
-    boss.move(WIDTH)
+    # Balas del jefe que impactan al jugador
+    for bullet in enemy.bullets[:]:
+        if player.rect.colliderect(bullet.rect) and not bullet.from_player:
+            if player.take_damage():
+                print("¡Jugador recibió daño!")
+            enemy.bullets.remove(bullet)
 
-    # Actualizar balas del jugador
-    for bullet in player_bullets[:]:
-        bullet.update()
-        if bullet.is_off_screen(HEIGHT):
-            player_bullets.remove(bullet)
-        elif bullet.rect.colliderect(boss.rect):
-            boss.take_damage(10)
-            player_bullets.remove(bullet)
-
-    # Dibujar todo
-    screen.fill((0, 0, 0))
-    boss.draw(screen)
+    # Dibujar
+    enemy.draw(screen)
     player.draw(screen)
 
-    for bullet in player_bullets:
-        bullet.draw(screen)
-
+    # Actualizar pantalla
     pygame.display.flip()
 
 pygame.quit()
