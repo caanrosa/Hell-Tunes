@@ -1,63 +1,77 @@
 import pygame
+import sys
 from Player import Player
 from Enemy import Enemy
-from Bullet import Bullet
+from Particles import Particle
+from SoundManager import SoundManager
 
-# Inicialización de Pygame
+# Inicialización de pygame
 pygame.init()
 
-# Dimensiones de la pantalla
+# Configuración de pantalla
 WIDTH, HEIGHT = 1200, 900
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Hell Tunes - Boss Battle")
-
-# Reloj
+pygame.display.set_caption("Hell Tunes")
 clock = pygame.time.Clock()
-FPS = 60
 
-# Colores
-BLACK = (0, 0, 0)
-
-# Instanciar jugador y enemigo
-player = Player(x=WIDTH // 3, y=HEIGHT - 80, size=30, speed=5,
-                screen_width=WIDTH, screen_height=HEIGHT)
+# Crear jugador y enemigo
+player = Player(x=WIDTH // 3, y=HEIGHT - 80, size=30, speed=5, screen_width=WIDTH, screen_height=HEIGHT)
 enemy = Enemy(x=WIDTH // 2 - 50, y=50, width=100, height=60, max_health=100)
 
-# Loop principal
+# Lista de partículas
+particles = []
+
+# Sonidos
+sound_manager = SoundManager()
+
+# Bucle principal
 running = True
 while running:
-    clock.tick(FPS)
-    screen.fill(BLACK)
+    clock.tick(60)
+    screen.fill((0, 0, 0))
 
-    # Eventos
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    # Entrada de teclado
+    # Movimiento del jugador
     keys = pygame.key.get_pressed()
     player.update(keys)
+
+    # Actualizar enemigo
     enemy.update(WIDTH)
 
-    # --- Detección de colisiones ---
-    # Balas del jugador que impactan al jefe
+    # Actualizar y dibujar partículas
+    for particle in particles[:]:
+        particle.update()
+        particle.draw(screen)
+        if particle.lifetime <= 0:
+            particles.remove(particle)
+
+    # Colisiones: balas del jugador al jefe
     for bullet in player.bullets[:]:
         if enemy.rect.colliderect(bullet.rect) and bullet.from_player:
             enemy.take_damage(1)
             player.bullets.remove(bullet)
 
-    # Balas del jefe que impactan al jugador
+            sound_manager.play("enemy_hit")
+
+            for _ in range(10):
+                particles.append(Particle(bullet.rect.centerx, bullet.rect.centery, (255, 255, 0)))
+
+    # Colisiones: balas del jefe al jugador
     for bullet in enemy.bullets[:]:
         if player.rect.colliderect(bullet.rect) and not bullet.from_player:
             if player.take_damage():
+                sound_manager.play("player_hit")
                 print("¡Jugador recibió daño!")
-            enemy.bullets.remove(bullet)
 
     # Dibujar
     enemy.draw(screen)
     player.draw(screen)
 
-    # Actualizar pantalla
+    # Mostrar
     pygame.display.flip()
 
 pygame.quit()
+sys.exit()

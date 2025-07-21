@@ -10,7 +10,7 @@ class Player:
         self.screen_height = screen_height
         self.cooldown = 0
         self.immunity_timer = 0
-        self.immunity_duration = 30  # frames
+        self.immunity_duration = 20  # frames
 
     def update(self, keys):
         if keys[pygame.K_LEFT] and self.rect.left > 0:
