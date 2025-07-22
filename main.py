@@ -14,13 +14,30 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Hell Tunes")
 clock = pygame.time.Clock()
 
-
 # Sonidos
 sound_manager = SoundManager()
 
-# Crear jugador y enemigo
-player = Player(x=WIDTH // 3, y=HEIGHT - 80, size=30, speed=5, screen_width=WIDTH, screen_height=HEIGHT, sound_manager=sound_manager)
-enemy = Enemy(x=WIDTH // 2 - 50, y=50, width=100, height=60, max_health=100, sound_manager=sound_manager)
+# Crear jugador
+player = Player(
+    x=WIDTH // 3,
+    y=HEIGHT - 80,
+    size=30,
+    speed=5,
+    screen_width=WIDTH,
+    screen_height=HEIGHT,
+    sound_manager=sound_manager
+)
+
+# Crear enemigo y pasarle al jugador como referencia
+enemy = Enemy(
+    x=WIDTH // 2 - 50,
+    y=50,
+    width= 250,
+    height=95,
+    max_health=100,
+    sound_manager=sound_manager,
+    player=player  # 🔧 <- Este es el cambio importante
+)
 
 # Lista de partículas
 particles = []
