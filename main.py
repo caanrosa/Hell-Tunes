@@ -1,5 +1,6 @@
 import pygame
 import sys
+import os
 from Player import Player
 from Enemy import Enemy
 from Particles import Particle
@@ -17,27 +18,19 @@ clock = pygame.time.Clock()
 # Sonidos
 sound_manager = SoundManager()
 
-# Crear jugador
-player = Player(
-    x=WIDTH // 3,
-    y=HEIGHT - 80,
-    size=30,
-    speed=5,
-    screen_width=WIDTH,
-    screen_height=HEIGHT,
-    sound_manager=sound_manager
-)
+# Cargar canción desde carpeta assets y reproducir
+MUSIC_PATH = os.path.join("assets", "Battle_Againts_A_True_Hero.mp3")
+if os.path.exists(MUSIC_PATH):
+    pygame.mixer.music.load(MUSIC_PATH)
+    pygame.mixer.music.set_volume(0.1)
+    pygame.mixer.music.play(-1)  # -1 = repetir indefinidamente
+else:
+    print("No se encontró el archivo de música:", MUSIC_PATH)
 
-# Crear enemigo y pasarle al jugador como referencia
-enemy = Enemy(
-    x=WIDTH // 2 - 50,
-    y=50,
-    width= 250,
-    height=95,
-    max_health=100,
-    sound_manager=sound_manager,
-    player=player  # 🔧 <- Este es el cambio importante
-)
+
+# Crear jugador y enemigo
+player = Player(x=WIDTH // 3, y=HEIGHT - 80, size=30, speed=5, screen_width=WIDTH, screen_height=HEIGHT, sound_manager=sound_manager)
+enemy = Enemy(x=WIDTH // 2 - 50, y=50, width=80, height=60, max_health=100, sound_manager=sound_manager, player=player)
 
 # Lista de partículas
 particles = []
@@ -45,8 +38,8 @@ particles = []
 # Bucle principal
 running = True
 while running:
-    clock.tick(60)
-    screen.fill((0, 0, 0))
+    clock.tick(60)  # Límite de 60 FPS
+    screen.fill((0, 0, 0))  # Fondo negro
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -74,6 +67,7 @@ while running:
 
             sound_manager.play("enemy_hit")
 
+            # Crear partículas amarillas al impactar
             for _ in range(10):
                 particles.append(Particle(bullet.rect.centerx, bullet.rect.centery, (255, 255, 0)))
 
@@ -84,12 +78,13 @@ while running:
                 sound_manager.play("player_hit")
                 print("¡Jugador recibió daño!")
 
-    # Dibujar
+    # Dibujar jefe y jugador
     enemy.draw(screen)
     player.draw(screen)
 
-    # Mostrar
+    # Mostrar pantalla
     pygame.display.flip()
 
+# Salir del juego
 pygame.quit()
 sys.exit()

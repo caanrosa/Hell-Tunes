@@ -31,11 +31,12 @@ class Enemy:
         self.image = pygame.image.load(os.path.join("assets", "Boss.png")).convert_alpha()
         self.image = pygame.transform.scale(self.image, (width, height))  # Escalamos al tamaño del rectángulo
 
-    def update(self, screen_width):
+    def update(self, screen_width, music_time=None):
         self.rect.x += self.direction * self.speed
         if self.rect.right >= screen_width or self.rect.left <= 0:
             self.direction *= -1
 
+        # Phase settings (speed, color, shoot rate)
         phase = self.health / self.max_health
         if phase > 0.66:
             self.color = (0, 0, 0)
@@ -50,6 +51,7 @@ class Enemy:
             self.speed = 8
             self.shoot_interval = 20
 
+        # Timed pattern switching (if needed)
         self.pattern_timer += 1
         if self.pattern_timer >= self.pattern_interval:
             self.pattern_timer = 0
@@ -60,10 +62,18 @@ class Enemy:
             self.patterns[self.current_pattern_index]()
             self.shoot_timer = 0
 
+        # Music sync: run scheduled attacks
+        if music_time is not None:
+            for t, pattern in self.attack_schedule[:]:
+                if abs(t - music_time) < 0.05:
+                    pattern()
+                    self.attack_schedule.remove((t, pattern))
+
         for bullet in self.bullets:
             bullet.update()
         self.bullets = [b for b in self.bullets if 0 <= b.rect.y <= 900]
-
+        
+        
     def shoot_wave(self):
         self.sound_manager.play("enemy_shoot")
         for i in range(-3, 4):
